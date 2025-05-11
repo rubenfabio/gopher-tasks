@@ -148,7 +148,7 @@ gopher-tasks task complete 1234-abcd
 
 ## Project Structure
 
-```
+```md
 gopher-tasks/
 ├── cmd/
 │   ├── server/           # API entrypoint
