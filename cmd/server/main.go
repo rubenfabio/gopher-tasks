@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-    log := logger.New("debug", "text", os.Stdout)
+	log := logger.New("debug", "text", os.Stdout)
 
     log.Info("Starting gopher-tasks server")
 
