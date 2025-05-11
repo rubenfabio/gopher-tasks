@@ -2,10 +2,10 @@
 /vendor/
 *.exe
 *.log
-/configs/config.yaml
 # se for usar .env
 .env
 .env.local
 .env.test
 .env.production
 .env.development
+configs/config.yaml
