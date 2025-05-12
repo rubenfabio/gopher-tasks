@@ -1,0 +1,101 @@
+basePath: /
+definitions:
+  domain.Task:
+    properties:
+      completed:
+        type: boolean
+      createdAt:
+        type: string
+      description:
+        type: string
+      dueDate:
+        type: string
+      id:
+        description: UUID gerado
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  http.createTaskRequest:
+    properties:
+      description:
+        example: Descrição da tarefa
+        type: string
+      due_date:
+        example: "2025-05-11T12:00:00Z"
+        type: string
+      title:
+        example: Testar API
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API para gerenciamento de tarefas
+  title: Gopher Tasks API
+  version: "1.0"
+paths:
+  /tasks:
+    get:
+      description: Retorna lista de tasks com filtros opcionais
+      parameters:
+      - description: Filtrar por concluídas
+        in: query
+        name: completed
+        type: boolean
+      - description: Limite de resultados
+        in: query
+        name: limit
+        type: integer
+      - description: Offset para paginação
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Task'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Lista tasks
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: Cria uma task com título, descrição e data de vencimento
+      parameters:
+      - description: Payload para criar task
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/http.createTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Task'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Cria uma nova task
+      tags:
+      - tasks
+swagger: "2.0"

@@ -1,3 +1,8 @@
+// @title       Gopher Tasks API
+// @version     1.0
+// @description API para gerenciamento de tarefas
+// @host        localhost:8080
+// @BasePath    /
 package main
 
 import (
@@ -7,12 +12,14 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	_ "github.com/rubenfabio/gopher-tasks/docs" // swagger docs
 	httpdelivery "github.com/rubenfabio/gopher-tasks/internal/delivery/http"
 	"github.com/rubenfabio/gopher-tasks/internal/infrastructure/config"
 	"github.com/rubenfabio/gopher-tasks/internal/infrastructure/database"
 	"github.com/rubenfabio/gopher-tasks/internal/infrastructure/logger"
 	"github.com/rubenfabio/gopher-tasks/internal/infrastructure/persistence/postgres"
 	"github.com/rubenfabio/gopher-tasks/internal/usecase"
+	httpSwagger "github.com/swaggo/http-swagger" // swagger UI handler
 )
 
 func main() {
@@ -23,11 +30,11 @@ func main() {
         os.Exit(1)
     }
 
-    // 2. Inicializa logger
+    // 2. Logger
     log := logger.New(cfg.Log.Level, cfg.Log.Format, os.Stdout)
     log.Info("Configuration loaded")
 
-    // 3. Abre conexão com DB
+    // 3. DB
     db, err := database.Open(
         cfg.Database.Driver,
         cfg.Database.DSN,
@@ -40,15 +47,23 @@ func main() {
     }
     log.Info("Database connection established")
 
-    // 4. Inicializa repositório, caso de uso e handler
-    taskRepo := postgres.NewTaskRepo(db)
-    createUC := usecase.NewCreateTaskUseCase(taskRepo)
-    taskHandler := httpdelivery.NewTaskHandler(createUC, log)
+    // 4. UseCases e Handler
+    taskRepo    := postgres.NewTaskRepo(db)
+    createUC    := usecase.NewCreateTaskUseCase(taskRepo)
+    listUC      := usecase.NewListTasksUseCase(taskRepo)
+    taskHandler := httpdelivery.NewTaskHandler(createUC, listUC, log)
 
-    // 5. Configura router
+    // 5. Router
     r := mux.NewRouter()
 
-    // Health-check endpoint
+    // Swagger UI endpoint em /swagger/index.html
+    r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+
+    // expõe swagger.json em /swagger.json
+    r.HandleFunc("/swagger.json", func(w http.ResponseWriter, r *http.Request) {
+        http.ServeFile(w, r, "docs/swagger.json")
+    }).Methods(http.MethodGet)
+    // Health-check
     r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
         if err := db.Ping(); err != nil {
             log.WithField("error", err).Error("Database ping failed")
@@ -59,10 +74,12 @@ func main() {
         w.Write([]byte("gopher-tasks is running and DB is healthy!"))
     }).Methods(http.MethodGet)
 
-    // Create task endpoint
+    // Create task
     r.HandleFunc("/tasks", taskHandler.Create).Methods(http.MethodPost)
+    // List tasks
+    r.HandleFunc("/tasks", taskHandler.List).Methods(http.MethodGet)
 
-    // 6. Inicia servidor HTTP
+    // 6. Start server
     addr := fmt.Sprintf(":%d", cfg.Server.Port)
     srv := &http.Server{
         Addr:         addr,
