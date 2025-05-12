@@ -1,17 +1,16 @@
 server:
-  # viper.AutomaticEnv() vai mapear APP_SERVER_PORT para server.port
-  port: ${APP_SERVER_PORT}          
-  readtimeout: ${APP_SERVER_READTIMEOUT}    # ex.: "5s"
-  writetimeout: ${APP_SERVER_WRITETIMEOUT}  # ex.: "10s"
+  port: 8080
+  readtimeout: 5s
+  writetimeout: 10s
 
 database:
-  driver: ${APP_DATABASE_DRIVER}    # ex.: "postgres"
-  dsn: ${APP_DATABASE_DSN}          # ex.: "postgres://user:pass@...&sslmode=disable"
+  driver: postgres
+  dsn: "postgres://postgres:postgres@localhost:5432/gophertasks?sslmode=disable"
 
 auth:
-  jwtsecret: ${APP_AUTH_JWTSECRET}                     # ex.: "your-secret-key"
-  tokenexpiryminutes: ${APP_AUTH_TOKENEXPIRYMINUTES}  # ex.: 60
+  jwtsecret: "your-super-secret-jwt-key"
+  tokenexpiryminutes: 60
 
 log:
-  level: ${APP_LOG_LEVEL}    # ex.: "debug"
-  format: ${APP_LOG_FORMAT}  # ex.: "text"
+  level: "debug"
+  format: "text"
